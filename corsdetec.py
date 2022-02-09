@@ -19,19 +19,22 @@ args = parser.parse_args()
 def make_requests(zzz):
     originheader = {'Origin':'https://evil.com'}
     nullorigin = {'Origin':'null'}
-    print(zzz)
+
 
     for x in zzz:
         y = x.replace('\n','')
-        r = requests.get('https://'+y,originheader['Origin'])
+        r = requests.get('https://'+y)
         print(r.status_code)
 
 
 
 if args.subdomain:
     array_sub = []
+    i = 0
     for subs in args.subdomain:
-        array_sub[i] += subs
+        array_sub.append(subs)
+        make_requests(subs)
+
 
 
 
@@ -40,6 +43,7 @@ def list_action():
         file = open(args.list,'r')
         if not args.out:
             print('Please provide --out txt file')
+            sys.exit()
         else:
             if os.path.exists(args.out):
                 print("File already created. Do you want to overrite it?[yes/no]")
