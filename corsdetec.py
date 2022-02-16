@@ -3,6 +3,8 @@ import requests
 import os
 import sys
 
+from requests.packages import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 #create the parser
 parser = argparse.ArgumentParser()
@@ -20,17 +22,53 @@ def make_requests(zzz):
     originheader = {'Origin':'https://evil.com'}
     nullorigin = {'Origin':'null'}
 
+    origin = originheader.get('Origin')
 
-    for x in zzz:
-        y = x.replace('\n','')
-        r = requests.get('https://'+y)
-        print(r.status_code)
+    # Route the traffic through proxies
+    proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
 
+
+    if args.list:
+        for x in zzz:
+            y = x.replace('\n','')
+            r = requests.get('https://'+y, proxies=proxies,headers=originheader,verify=False)
+            ACAO = r.headers.get('Access-Control-Allow-Origin')
+            ACAC = r.headers.get('Access-Control-Allow-Credentials')
+
+            checkcors(ACAO,ACAC,origin)
+
+
+    if args.subdomain:
+        r = requests.get('https://'+zzz,proxies=proxies,headers=originheader,verify=False)
+
+        ACAO = r.headers.get('Access-Control-Allow-Origin')
+        ACAC = r.headers.get('Access-Control-Allow-Credentials')
+
+        checkcors(ACAO,ACAC,origin)
+
+
+
+def checkcors(ACAO,ACAC,origin):
+
+    if ACAO == origin and ACAC is None:
+        print(f'ACAO is {ACAO}')
+        print('Only ACAO is reflected')
+
+    elif ACAO == '*' and ACAC is None:
+        print('Wildcart supported')
+
+    elif ACAO == '*' and ACAC == 'true':
+        print('Creds True but Origin *')
+
+    elif ACAO == origin and ACAC == 'true':
+        print('Possible CORS Misconfiguration')
+
+    else:
+        print('No reflection')
 
 
 if args.subdomain:
     array_sub = []
-    i = 0
     for subs in args.subdomain:
         array_sub.append(subs)
         make_requests(subs)
