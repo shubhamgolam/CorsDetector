@@ -18,7 +18,7 @@ parser.add_argument('--out', type=str,help='Provide a output file name')
 #parse the argument
 args = parser.parse_args()
 
-def make_requests(zzz):
+def make_requests(list_action['file']):
     originheader = {'Origin':'https://evil.com'}
     nullorigin = {'Origin':'null'}
 
@@ -31,6 +31,7 @@ def make_requests(zzz):
     if args.list:
         for x in zzz:
             y = x.replace('\n','')
+            a.write(y)
             r = requests.get('https://'+y, proxies=proxies,headers=originheader,verify=False)
             ACAO = r.headers.get('Access-Control-Allow-Origin')
             ACAC = r.headers.get('Access-Control-Allow-Credentials')
@@ -40,7 +41,7 @@ def make_requests(zzz):
 
     if args.subdomain:
         r = requests.get('https://'+zzz,proxies=proxies,headers=originheader,verify=False)
-
+        #create.write(zzz)
         ACAO = r.headers.get('Access-Control-Allow-Origin')
         ACAC = r.headers.get('Access-Control-Allow-Credentials')
 
@@ -51,20 +52,21 @@ def make_requests(zzz):
 def checkcors(ACAO,ACAC,origin):
 
     if ACAO == origin and ACAC is None:
-        print(f'ACAO is {ACAO}')
-        print('Only ACAO is reflected')
+        a.write(f'ACAO is {ACAO}')
+        a.write('Only ACAO is reflected')
 
     elif ACAO == '*' and ACAC is None:
-        print('Wildcart supported')
+        a.write('Wildcart Supported')
 
     elif ACAO == '*' and ACAC == 'true':
-        print('Creds True but Origin *')
+        a.write('Creds True but Origin *')
 
     elif ACAO == origin and ACAC == 'true':
-        print('Possible CORS Misconfiguration')
+        a.write('Possible CORS Misconfiguration')
 
     else:
-        print('No reflection')
+        create.write('No reflection')
+
 
 
 if args.subdomain:
@@ -90,7 +92,9 @@ def list_action():
                     print('File will be overwritten')
                     print('\n\n')
                     create = open(args.out,'w')
-                    return file
+                    create.close()
+                #    a = open(args.out,'a')
+                    return {'a':a,'file':file}
                 elif answer == 'no':
                     print('Give some unique name :)')
                     sys.exit()
