@@ -93,8 +93,11 @@ def list_action():
                     print('\n\n')
                     create = open(args.out,'w')
                     create.close()
-                #    a = open(args.out,'a')
-                    return {'a':a,'file':file}
+                    values = dict()
+                    a = open(args.out,'a')
+                    values['a'] = a
+                    values['file'] = file
+                    return values
                 elif answer == 'no':
                     print('Give some unique name :)')
                     sys.exit()
@@ -102,5 +105,9 @@ def list_action():
                     print('Please make your decision')
                     sys.exit()
 
+
 if args.list:
+
+
     make_requests(list_action())
+    print(values)
