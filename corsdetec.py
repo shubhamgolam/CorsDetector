@@ -18,7 +18,12 @@ parser.add_argument('--out', type=str,help='Provide a output file name')
 #parse the argument
 args = parser.parse_args()
 
-def make_requests(list_action['file']):
+def make_requests(*takeall):
+    #takeall is tuple of tuple ((a,zzz),) with file and (sub,) for subdomain
+    rrr = takeall[0] #take the first value from tuple
+    a = rrr[1]#take the file write object
+
+
     originheader = {'Origin':'https://evil.com'}
     nullorigin = {'Origin':'null'}
 
@@ -29,50 +34,74 @@ def make_requests(list_action['file']):
 
 
     if args.list:
+        zzz = rrr[0]
         for x in zzz:
             y = x.replace('\n','')
-            a.write(y)
+            a.write(y + '\n')
+
             r = requests.get('https://'+y, proxies=proxies,headers=originheader,verify=False)
             ACAO = r.headers.get('Access-Control-Allow-Origin')
             ACAC = r.headers.get('Access-Control-Allow-Credentials')
 
-            checkcors(ACAO,ACAC,origin)
+            checkcors(ACAO,ACAC,origin,a,y)
 
 
     if args.subdomain:
-        r = requests.get('https://'+zzz,proxies=proxies,headers=originheader,verify=False)
-        #create.write(zzz)
+        r = requests.get('https://'+rrr[0],proxies=proxies,headers=originheader,verify=False)
         ACAO = r.headers.get('Access-Control-Allow-Origin')
         ACAC = r.headers.get('Access-Control-Allow-Credentials')
 
-        checkcors(ACAO,ACAC,origin)
+        checkcors(ACAO,ACAC,origin,rrr,None)
 
 
 
-def checkcors(ACAO,ACAC,origin):
+def checkcors(ACAO,ACAC,origin,*giveme):
+    #same tuple logic here
+
+    a= giveme[0]
+    domain = giveme[1]
+
 
     if ACAO == origin and ACAC is None:
-        a.write(f'ACAO is {ACAO}')
-        a.write('Only ACAO is reflected')
+        if args.list:
+            a.write(f'ACAO is {ACAO}')
+            a.write('Only ACAO is reflected\n')
+
+        else:
+            print(f'ACAO is {ACAO}')
+            print('Only ACAO is reflected\n')
 
     elif ACAO == '*' and ACAC is None:
-        a.write('Wildcart Supported')
+        if args.list:
+            a.write('Wildcart Supported\n')
+
+        else:
+            print('Wildcart Supported\n')
 
     elif ACAO == '*' and ACAC == 'true':
-        a.write('Creds True but Origin *')
+        if args.list:
+            a.write('ACAO is * and Creds is True' +'\n')
+
+        else:
+            print('ACAO is * and Creds is True\n')
 
     elif ACAO == origin and ACAC == 'true':
-        a.write('Possible CORS Misconfiguration')
+        if args.list:
+            a.write('Possible CORS Misconfiguration'+'\n')
+
+        else:
+            print('Possible CORS Misconfiguration\n')
 
     else:
-        create.write('No reflection')
+        if args.list:
+            a.write('No reflection' + '\n' )
 
+        else:
+            print('No reflection\n')
 
 
 if args.subdomain:
-    array_sub = []
     for subs in args.subdomain:
-        array_sub.append(subs)
         make_requests(subs)
 
 
@@ -90,14 +119,14 @@ def list_action():
                 answer = input()
                 if answer == 'yes':
                     print('File will be overwritten')
-                    print('\n\n')
+                    print('\n')
                     create = open(args.out,'w')
                     create.close()
-                    values = dict()
+
                     a = open(args.out,'a')
-                    values['a'] = a
-                    values['file'] = file
-                    return values
+
+                    return file, a
+
                 elif answer == 'no':
                     print('Give some unique name :)')
                     sys.exit()
@@ -106,8 +135,6 @@ def list_action():
                     sys.exit()
 
 
+
 if args.list:
-
-
     make_requests(list_action())
-    print(values)
