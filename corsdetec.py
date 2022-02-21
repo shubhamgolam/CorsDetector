@@ -14,22 +14,26 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--subdomain', type=str, help='Single or Multiple Subdomains with spaces', nargs='+')
 parser.add_argument('--list', type=str,help='Provide list of subdomains with --out file')
 parser.add_argument('--out', type=str,help='Provide a output file name')
-
+parser.add_argument('--N', action='store_true',help='Check for NULL origin') #we just want the flag -N hence the action is store_true
 #parse the argument
 args = parser.parse_args()
 
 def make_requests(readfile):
 
+    originheader = {}
 
-   #takeall is tuple of tuple ((a,zzz),) with file and (sub,) for subdomain
-   #take the first value from tuple
 
-    originheader = {'Origin':'https://evil.com'}
-    nullorigin = {'Origin':'null'}
+    if (args.list or args.subdomain) and args.N:
+        originheader['Origin'] = 'null'
+        origin = originheader['Origin']
 
-    origin = originheader.get('Origin')
+    else:
+        originheader['Origin'] = 'https://evil.com'
+        origin = originheader['Origin']
 
-    # Route the traffic through proxies
+
+
+    # Route the traffic through proxies like burpsuite
     proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
 
 
@@ -56,7 +60,7 @@ def make_requests(readfile):
 
 
 def checkcors(ACAO,ACAC,origin,*giveme):
-    #same tuple logic here
+
 
     a = giveme[0]
     domain = giveme[1]
@@ -64,7 +68,7 @@ def checkcors(ACAO,ACAC,origin,*giveme):
 
     if ACAO == origin and ACAC is None:
         if args.list:
-            a.write(domain)
+            a.write(domain+'\n')
             a.write(f'ACAO is {ACAO}')
             a.write('Only ACAO is reflected'+'\n')
 
@@ -75,7 +79,7 @@ def checkcors(ACAO,ACAC,origin,*giveme):
 
     elif ACAO == '*' and ACAC is None:
         if args.list:
-            a.write(domain)
+            a.write(domain+'\n')
             a.write('Wildcart Supported'+'\n')
 
         else:
@@ -84,7 +88,7 @@ def checkcors(ACAO,ACAC,origin,*giveme):
 
     elif ACAO == '*' and ACAC == 'true':
         if args.list:
-            a.write(domain)
+            a.write(domain+'\n')
             a.write('ACAO is * and Creds is True' +'\n')
 
         else:
@@ -93,7 +97,7 @@ def checkcors(ACAO,ACAC,origin,*giveme):
 
     elif ACAO == origin and ACAC == 'true':
         if args.list:
-            a.write(domain)
+            a.write(domain+'\n')
             a.write('Possible CORS Misconfiguration'+'\n')
 
         else:
@@ -102,7 +106,7 @@ def checkcors(ACAO,ACAC,origin,*giveme):
 
     else:
         if args.list:
-            a.write(domain)
+            a.write(domain+'\n')
             a.write('No reflection' + '\n' )
 
         else:
