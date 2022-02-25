@@ -2,8 +2,10 @@ import argparse
 import requests
 import os
 import sys
-
+import time
 from requests.packages import urllib3
+from concurrent.futures import ThreadPoolExecutor
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 #create the parser
@@ -18,7 +20,10 @@ parser.add_argument('--N', action='store_true',help='Check for NULL origin') #we
 #parse the argument
 args = parser.parse_args()
 
+start = time.perf_counter()
+
 def make_requests(readfile):
+
 
     originheader = {}
 
@@ -39,15 +44,11 @@ def make_requests(readfile):
 
     if args.list:
         with open(args.out,'a') as a:
-
-            for x in readfile:
-                print(x)
-                y = x.replace('\n','')
-                r = requests.get('https://'+y, proxies=proxies,headers=originheader,verify=False)
+                r = requests.get('https://'+readfile, proxies=proxies,headers=originheader,verify=False)
                 ACAO = r.headers.get('Access-Control-Allow-Origin')
                 ACAC = r.headers.get('Access-Control-Allow-Credentials')
 
-                checkcors(ACAO,ACAC,origin,a,y)
+                checkcors(ACAO,ACAC,origin,a,readfile)
 
 
     if args.subdomain:
@@ -116,8 +117,9 @@ def checkcors(ACAO,ACAC,origin,*giveme):
 
 
 if args.subdomain:
-    for subs in args.subdomain:
-        make_requests(subs)
+    data =  args.subdomain
+    with ThreadPoolExecutor(max_workers=30) as executor:
+        executor.map(make_requests,data)
 
 
 
@@ -125,7 +127,8 @@ if args.subdomain:
 #open the file  > read the subdomains and print them
 def list_action():
         with open(args.list,'r') as f:
-            file = f.readlines()
+            file = f.read()
+        file = file.split('\n')
         if not args.out:
             print('Please provide --out txt file')
             sys.exit()
@@ -149,4 +152,7 @@ def list_action():
 
 
 if args.list:
-    make_requests(list_action())
+    with ThreadPoolExecutor(max_workers=30) as executor:
+        executor.map(make_requests,list_action())
+
+#print('Total time:',time.perf_counter()-start)
